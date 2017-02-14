@@ -27,7 +27,7 @@ type alias Model =
 
 model : Model
 model =
-  Model "" "" "" "" False
+  Model "" "" "" "" True
 
 
 
@@ -46,9 +46,9 @@ update : Msg -> Model -> Model
 update msg model =
   case msg of
     Submit ->
-      if (String.length model.password > 8)
+      if (model.password == model.passwordAgain)
       then {model | valid = True}
-      else model
+      else {model | valid = False}
 
     Name name ->
       { model | name = name }
@@ -69,12 +69,16 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  div []
+  let message =
+    if model.valid then div[][]
+    else div[][text "Passwords don't match"]
+  in div []
     [ input [ type_ "text", placeholder "Name", onInput Name ] []
     , input [type_ "text", placeholder "Age", onInput Age] []
     , input [ type_ "password", placeholder "Password", onInput Password ] []
     , input [ type_ "password", placeholder "Re-enter Password", onInput PasswordAgain ] []
     , button [onClick Submit][text "Submit"]
+    , message
     ]
 
 
