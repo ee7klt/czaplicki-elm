@@ -2,7 +2,8 @@ import Html exposing (Html)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Time exposing (Time, second)
-
+import Html.Events exposing (onClick)
+import Debug
 
 
 main =
@@ -18,12 +19,14 @@ main =
 -- MODEL
 
 
-type alias Model = Time
-
+type alias Model =
+  { time: Time
+    ,run: Bool
+  }
 
 init : (Model, Cmd Msg)
 init =
-  (0, Cmd.none)
+  (Model 0 True, Cmd.none)
 
 
 
@@ -32,13 +35,21 @@ init =
 
 type Msg
   = Tick Time
+  | Reset
+  | Pause
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Tick newTime ->
-      (newTime, Cmd.none)
+      ({model | time = newTime}, Cmd.none)
+    Reset ->
+      ({model | time = 0}, Cmd.none)
+    Pause ->
+      ({model | run = not model.run}, Cmd.none)
+
+
 
 
 
@@ -47,8 +58,9 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Time.every second Tick
-
+  if model.run then
+   Time.every second Tick
+  else Sub.none
 
 
 -- VIEW
@@ -57,8 +69,9 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
   let
+
     angle =
-      turns (Time.inMinutes model)
+      turns (Time.inMinutes model.time)
 
     handX =
       toString (50 + 40 * cos angle)
@@ -66,7 +79,11 @@ view model =
     handY =
       toString (50 + 40 * sin angle)
   in
+    Html.div [] [
     svg [ viewBox "0 0 100 100", width "300px" ]
       [ circle [ cx "50", cy "50", r "45", fill "#0B79CE" ] []
       , line [ x1 "50", y1 "50", x2 handX, y2 handY, stroke "#023963" ] []
+      ],
+    Html.button [onClick Reset] [text "Reset"],
+  Html.button [onClick Pause] [text "Pause"]
       ]
